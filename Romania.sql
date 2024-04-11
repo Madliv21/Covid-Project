@@ -95,7 +95,6 @@ select *,(TotalVaccinations/Population)*100 as VaccinationPercentage
 from #PercentPopulationVaccinated
 order by 2,3
 
-
 --Creating View for Visualization
 Create View TotalVaccinations as
 select dea.continent,dea.location,dea.date,dea.population,vac.new_vaccinations, sum(cast(vac.new_vaccinations as int)) over (Partition by dea.location order by dea.location, dea.date) as TotalVaccinations
@@ -108,4 +107,23 @@ where dea.continent is not null
 Select *
 From TotalVaccinations
 
+Create View DeathRatio as
+select dea.date,sum(dea.new_cases) as TotalCases,sum(cast(dea.new_deaths as bigint)) as TotalDeaths,sum(cast(dea.new_deaths as bigint))/sum(dea.new_cases) as DeathRatio
+from [Project Covid]..CovidDeaths dea
+where continent is not null
+group by date
+--order by 1,2
 
+--Highest DeathRate per Country
+Create View CountryDeathRate as
+select location,population,max(cast(total_deaths as int)) as DeathCount
+from [Project Covid]..CovidDeaths
+where continent is not null
+Group By location,population
+
+--Highest DeathRate per Continent
+Create View ContinentDeathRate as
+select continent,max(cast(total_deaths as bigint)) as DeathCount
+from [Project Covid]..CovidDeaths
+where continent is not null
+Group By continent
